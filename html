@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Architectural VR 360 Tour | Enscape Viewer</title>
+  <!-- A-Frame WebXR Library -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+  <style>
+    /* 2D Overlay HUD (Desktop / Mobile Fallback) */
+    #overlay {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 1000;
+      color: #ffffff;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: rgba(18, 18, 18, 0.75);
+      backdrop-filter: blur(8px);
+      padding: 12px 20px;
+      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      pointer-events: none;
+    }
+    #overlay h1 {
+      margin: 0 0 4px 0;
+      font-size: 1.1rem;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+    #overlay p {
+      margin: 0;
+      font-size: 0.85rem;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 2D Screen Info -->
+  <div id="overlay">
+    <h1 id="room-title">Living Room</h1>
+    <p>Look around • Click hotspots or enter VR on Meta Quest</p>
+  </div>
+
+  <a-scene 
+    loading-screen="dotsColor: #3B82F6; backgroundColor: #0F172A"
+    webxr="optionalFeatures: hit-test, local-floor;"
+    cursor="rayOrigin: mouse"
+    raycaster="objects: .clickable">
+
+    <!-- Preload Assets (Enscape 360 Equirectangular Images) -->
+    <a-assets>
+      <!-- Replace these placeholder URLs with your local Enscape exports: ./assets/living_room.jpg -->
+      <img id="living-room" crossorigin="anonymous" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=4096&q=80">
+      <img id="kitchen" crossorigin="anonymous" src="https://images.unsplash.com/photo-1556911220-e15b29be8c8f?auto=format&fit=crop&w=4096&q=80">
+      <img id="patio" crossorigin="anonymous" src="https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&w=4096&q=80">
+    </a-assets>
+
+    <!-- 360 Sky Sphere -->
+    <a-sky id="sky-display" src="#living-room" rotation="0 -90 0" animation__fade="property: material.color; type: color; from: #000; to: #FFF; dur: 400; startEvents: fade-in"></a-sky>
+
+    <!-- User Rig & VR Controllers -->
+    <a-entity id="rig" position="0 1.6 0">
+      <!-- Camera with gaze reticle for non-controller or hands-free interaction -->
+      <a-camera id="cam">
+        <a-cursor 
+          id="cursor" 
+          animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 150; from: 0.1 0.1 0.1; to: 1 1 1"
+          animation__fusing="property: fusing; startEvents: fusing; easing: easeInCubic; dur: 1500; from: 1 1 1; to: 0.1 0.1 0.1"
+          event-set__mouseenter="_event: mouseenter; color: #38BDF8"
+          event-set__mouseleave="_event: mouseleave; color: #FFF"
+          raycaster="objects: .clickable" 
+          color="#FFFFFF" 
+          scale="0.8 0.8 0.8">
+        </a-cursor>
+      </a-camera>
+
+      <!-- Meta Quest Laser Controllers -->
+      <a-entity laser-controls="hand: right" raycaster="objects: .clickable; lineColor: #38BDF8; lineOpacity: 0.7"></a-entity>
+      <a-entity laser-controls="hand: left" raycaster="objects: .clickable; lineColor: #38BDF8; lineOpacity: 0.7"></a-entity>
+    </a-entity>
+
+    <!-- ============================================== -->
+    <!-- SPATIAL UI: FLOATING NAVIGATION MENU (Curve HUD) -->
+    <!-- ============================================== -->
+    <a-entity id="floating-menu" position="0 0.9 -1.8" rotation="-15 0 0">
+      <!-- Menu Background Plate -->
+      <a-plane width="1.6" height="0.45" color="#0B132B" opacity="0.85" material="roughness: 0.2; metalness: 0.1" position="0 0 0" border-radius="0.05">
+        <a-text value="ARCHITECTURAL WALKTHROUGH" align="center" position="0 0.14 0.01" scale="0.28 0.28 0.28" color="#94A3B8"></a-text>
+      </a-plane>
+
+      <!-- Room Button 1: Living Room -->
+      <a-plane class="clickable nav-btn" data-target="#living-room" data-title="Living Room"
+               position="-0.5 -0.05 0.02" width="0.42" height="0.18" color="#1E293B">
+        <a-text value="Living Area" align="center" position="0 0 0.01" scale="0.32 0.32 0.32" color="#FFFFFF"></a-text>
+      </a-plane>
+
+      <!-- Room Button 2: Kitchen -->
+      <a-plane class="clickable nav-btn" data-target="#kitchen" data-title="Kitchen / Dining"
+               position="0 -0.05 0.02" width="0.42" height="0.18" color="#1E293B">
+        <a-text value="Kitchen" align="center" position="0 0 0.01" scale="0.32 0.32 0.32" color="#FFFFFF"></a-text>
+      </a-plane>
+
+      <!-- Room Button 3: Patio -->
+      <a-plane class="clickable nav-btn" data-target="#patio" data-title="Exterior Patio"
+               position="0.5 -0.05 0.02" width="0.42" height="0.18" color="#1E293B">
+        <a-text value="Outdoor Patio" align="center" position="0 0 0.01" scale="0.32 0.32 0.32" color="#FFFFFF"></a-text>
+      </a-plane>
+    </a-entity>
+
+    <!-- ============================================== -->
+    <!-- SPATIAL HOTSPOTS (Floor Rings & Pins)          -->
+    <!-- ============================================== -->
+    <!-- Hotspot pointing to Kitchen -->
+    <a-entity id="hotspot-kitchen" class="clickable nav-btn" data-target="#kitchen" data-title="Kitchen / Dining" position="2 -0.8 -2.5" rotation="-90 0 0">
+      <a-ring radius-inner="0.18" radius-outer="0.25" color="#38BDF8" opacity="0.9"
+              animation="property: scale; dir: alternate; dur: 1200; to: 1.15 1.15 1.15; loop: true"></a-ring>
+      <a-circle radius="0.15" color="#0284C7" opacity="0.7"></a-circle>
+      <a-text value="Kitchen" align="center" position="0 0.45 0" rotation="90 0 0" scale="0.5 0.5 0.5" color="#FFFFFF"></a-text>
+    </a-entity>
+
+  </a-scene>
+
+  <!-- Interactive Logic -->
+  <script>
+    const sky = document.getElementById('sky-display');
+    const roomTitle = document.getElementById('room-title');
+    const buttons = document.querySelectorAll('.nav-btn');
+
+    buttons.forEach(btn => {
+      // Hover effects for spatial feedback
+      btn.addEventListener('mouseenter', () => {
+        btn.setAttribute('scale', '1.08 1.08 1.08');
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.setAttribute('scale', '1.0 1.0 1.0');
+      });
+
+      // Click / Raycast trigger
+      btn.addEventListener('click', (e) => {
+        const targetImage = btn.getAttribute('data-target');
+        const roomName = btn.getAttribute('data-title');
+
+        if (targetImage) {
+          // Cross-fade animation effect
+          sky.setAttribute('material', 'color', '#111');
+          setTimeout(() => {
+            sky.setAttribute('src', targetImage);
+            sky.emit('fade-in');
+            sky.setAttribute('material', 'color', '#FFF');
+            if (roomTitle) roomTitle.textContent = roomName;
+          }, 200);
+        }
+      });
+    });
+  </script>
+</body>
+</html>
