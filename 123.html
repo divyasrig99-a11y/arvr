@@ -1,108 +1,662 @@
-<!-- ... existing code ... -->
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>POORNA MARKET | 360° Architectural VR Tour | Life Simulation</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Font Awesome 6 Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+
+  <!-- A-Frame WebXR Framework -->
+  <script src="https://aframe.io/releases/1.5.0/aframe.min.js"></script>
+
+  <!-- Google Fonts: Plus Jakarta Sans, Outfit, & Cinzel -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Cinzel:wght@600;700&display=swap" rel="stylesheet">
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Outfit', 'sans-serif'],
+            serif: ['Cinzel', 'serif'],
+          },
+          colors: {
+            simsGreen: {
+              300: '#5EEAD4',
+              400: '#2DD4BF',
+              500: '#10B981', /* Sims Plumbob Emerald */
+              600: '#059669',
+            },
+            marketGold: '#F59E0B',
+            marketRed: '#E11D48',
+            urbanDark: '#0B1118',
+            urbanCard: '#131D28'
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+    body, html {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background-color: #0B1118;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: #F8FAFC;
+    }
+
+    /* Glassmorphism Styles */
+    .glass-panel {
+      background: rgba(11, 17, 24, 0.84);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(45, 212, 191, 0.25);
+    }
+    .market-btn {
+      background: rgba(19, 29, 40, 0.8);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(45, 212, 191, 0.35);
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .market-btn:hover {
+      background: rgba(16, 185, 129, 0.25);
+      border-color: #10B981;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+    }
+
+    /* Spinning Sims Plumbob Animation */
+    @keyframes plumbob-float {
+      0%, 100% { transform: translateY(0px) rotateY(0deg); }
+      50% { transform: translateY(-10px) rotateY(180deg); }
+    }
+    .plumbob-glow {
+      filter: drop-shadow(0 0 12px #10B981);
+      animation: plumbob-float 3.5s ease-in-out infinite;
+    }
+
+    /* Weather Canvas Overlay */
+    #weather-canvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .a-loader-title { display: none !important; }
+    .a-enter-vr {
+      position: fixed !important;
+      bottom: 24px !important;
+      right: 24px !important;
+      z-index: 35 !important;
+    }
+  </style>
+</head>
+<body class="relative">
+
+  <!-- Dynamic Weather Particle Canvas Overlay -->
+  <canvas id="weather-canvas"></canvas>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 1: ENTRANCE HERO (Using Modern Urban Market Promenade Photo)       -->
+  <!-- ========================================================================= -->
+  <section id="screen-welcome" class="fixed inset-0 z-50 flex flex-col justify-between p-6 md:p-12 transition-all duration-1000 bg-cover bg-center overflow-hidden"
+           style="background-image: linear-gradient(180deg, rgba(11, 17, 24, 0.65) 0%, rgba(11, 17, 24, 0.94) 100%), url('image_02dd07.jpg');">
+
+    <!-- Top Official Banner -->
+    <header class="flex items-center justify-between w-full max-w-7xl mx-auto">
+      <div class="flex items-center space-x-3.5">
+        <!-- Sims Plumbob / Poorna Market Logo -->
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-br from-emerald-400 via-teal-500 to-green-700 flex items-center justify-center text-urbanDark shadow-xl shadow-emerald-500/30">
+          <i class="fa-solid fa-shapes text-2xl text-white"></i>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-3 sm:space-x-4">
+        <div class="hidden sm:flex items-center space-x-2 px-3.5 py-1.5 rounded-full border border-emerald-400/30 text-[11px] uppercase tracking-wider text-emerald-300 bg-black/40">
+          <i class="fa-solid fa-cloud-sun text-emerald-400"></i>
+          <span data-i18n="live_weather_badge">Dynamic Weather & 360° VR Engine</span>
+        </div>
+        
+        <!-- Screen 1 Trilingual Switcher (EN, HI, TE) -->
+        <div class="flex items-center space-x-1.5 bg-black/50 border border-white/15 rounded-2xl p-1 text-xs">
+          <button class="hero-lang-btn px-3 py-1.5 rounded-xl text-emerald-400 font-bold bg-white/10 transition-colors" data-lang="en">EN</button>
+          <button class="hero-lang-btn px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-colors" data-lang="hi">हिंदी</button>
+          <button class="hero-lang-btn px-3 py-1.5 rounded-xl text-slate-300 hover:text-white transition-colors" data-lang="te">తెలుగు</button>
+        </div>
+      </div>
+    </header>
+
+    <!-- Center Hero Details & Start Button -->
+    <main class="w-full max-w-4xl mx-auto text-center my-auto px-4">
+      <h1 class="font-display font-extrabold text-5xl sm:text-7xl md:text-8xl text-white tracking-tight leading-none mb-12">
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-emerald-300 via-teal-200 to-amber-300" data-i18n="brand_main">POORNA MARKET</span>
+      </h1>
+
+      <!-- Shimmer VR Start Button -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
+        <button id="btn-start-visit" 
+                class="group relative inline-flex items-center justify-center px-10 py-5 font-display font-bold text-urbanDark text-base sm:text-lg tracking-wider uppercase rounded-2xl bg-gradient-to-r from-emerald-400 via-teal-300 to-amber-300 shadow-2xl shadow-emerald-500/40 hover:scale-105 active:scale-95 transition-all duration-300 cursor-pointer overflow-hidden border border-white/50">
+          <span class="relative z-10 flex items-center space-x-3">
+            <i class="fa-solid fa-vr-cardboard text-xl"></i>
+            <span data-i18n="btn_start">ENTER 360° VR TOUR</span>
+            <i class="fa-solid fa-arrow-right text-sm group-hover:translate-x-1.5 transition-transform duration-300"></i>
+          </span>
+          <div class="absolute inset-0 bg-white/40 transform -skew-x-12 -translate-x-full group-hover:translate-x-full transition-transform duration-1000"></div>
+        </button>
+      </div>
+    </main>
+
+    <!-- Bottom Specs Footer -->
+    <footer class="w-full max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400 border-t border-white/10 pt-4 gap-2">
+      <div class="flex items-center space-x-4">
+        <span><i class="fa-solid fa-headset mr-1 text-emerald-400"></i> Meta Quest VR & WebXR Ready</span>
+        <span><i class="fa-solid fa-cloud-rain mr-1 text-teal-400"></i> Multi-Weather Simulation</span>
+      </div>
+      <div>
+        <span>Poorna Market Architecture Studio • Interactive Life Simulation Tour</span>
+      </div>
+    </footer>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 2: BLANKET-OUT LOADER (Architectural Telemetry Calibration)        -->
+  <!-- ========================================================================= -->
+  <section id="screen-loader" class="fixed inset-0 z-40 flex flex-col items-center justify-center bg-urbanDark pointer-events-none opacity-0 transition-opacity duration-700">
+    <div class="relative flex flex-col items-center px-6 text-center max-w-md">
+      
+      <!-- Pulsing 3D Plumbob & Coordinate Radar -->
+      <div class="relative w-28 h-28 mb-8 flex items-center justify-center">
+        <div class="absolute inset-0 rounded-full border-2 border-emerald-400/30 border-dashed animate-spin" style="animation-duration: 16s;"></div>
+        <div class="w-16 h-16 rounded-2xl bg-emerald-500/10 border border-emerald-400 flex items-center justify-center text-emerald-400 text-3xl shadow-xl shadow-emerald-500/30">
+          <i class="fa-solid fa-gem animate-bounce"></i>
+        </div>
+      </div>
+
+      <h2 class="font-display font-extrabold text-2xl text-white tracking-wider mb-2" data-i18n="loader_title">INITIALIZING POORNA MARKET 360° SIMULATION</h2>
+      <p class="text-xs uppercase tracking-widest text-emerald-400 mb-6 font-mono" id="loader-telemetry">CALIBRATING SPATIAL COORDINATES...</p>
+
+      <!-- Progress Track -->
+      <div class="w-72 h-2.5 bg-slate-900 rounded-full overflow-hidden p-0.5 border border-emerald-500/30">
+        <div id="loader-progress-bar" class="h-full bg-gradient-to-r from-emerald-500 via-teal-400 to-amber-300 rounded-full w-0 transition-all duration-150"></div>
+      </div>
+      <span class="text-xs font-mono text-emerald-400 mt-3" id="loader-percentage">0%</span>
+    </div>
+  </section>
+
+  <!-- ========================================================================= -->
+  <!-- SCREEN 3: 360 WEBXR VR PANORAMIC VIEWER (A-FRAME)                         -->
+  <!-- ========================================================================= -->
+  <div id="vr-viewport" class="w-full h-full absolute inset-0 z-0">
+    <a-scene 
+      embedded 
+      loading-screen="enabled: false"
+      webxr="optionalFeatures: hit-test, local-floor;"
+      cursor="rayOrigin: mouse"
+      raycaster="objects: .clickable">
+
+      <!-- Assets Preloader for Market 360 Panoramas -->
+      <a-assets timeout="12000">
+        <!-- 1. Entrance: Uploaded 360 Market Plaza Panorama -->
+        <img id="asset-entrance" crossorigin="anonymous" src="Gemini_Generated_Image_yoro50yoro50yoro_2.png">
+        <!-- 2. Vegetable Shop: Indoor Timber-Framed Produce Hall -->
+        <img id="asset-vegetable" crossorigin="anonymous" src="image_02c924.jpg">
+        <!-- 3. Flower Shop: Royal Floral Conservatory -->
+        <img id="asset-flower" crossorigin="anonymous" src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=4096&q=80">
+        <!-- 4. Cafe: Architectural Plaza Cafe -->
+        <img id="asset-cafe" crossorigin="anonymous" src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=4096&q=80">
+      </a-assets>
+
+      <!-- 360 Sky Sphere -->
+      <a-sky id="vr-sky" 
+             src="#asset-entrance" 
+             rotation="0 -90 0" 
+             animation__fade="property: material.color; type: color; from: #000000; to: #FFFFFF; dur: 400; startEvents: fade-in">
+      </a-sky>
+
+      <!-- Dynamic 3D Ambient & Directional Lighting for Day/Night in VR -->
+      <a-light id="vr-ambient-light" type="ambient" color="#FFFFFF" intensity="1.0"></a-light>
+
+      <!-- 3D Volumetric Weather Particle System inside VR -->
+      <a-entity id="vr-3d-weather" position="0 2.5 0"></a-entity>
+
+      <!-- 3D Glowing Night Market Lanterns (Visible in Night Mode) -->
+      <a-entity id="vr-night-lanterns" visible="false">
+        <a-sphere position="-2.2 2.4 -2.5" radius="0.14" color="#F59E0B" material="emissive: #F59E0B; emissiveIntensity: 1.5"></a-sphere>
+        <a-sphere position="2.2 2.4 -2.5" radius="0.14" color="#10B981" material="emissive: #10B981; emissiveIntensity: 1.5"></a-sphere>
+        <a-sphere position="-2.5 2.4 2.2" radius="0.14" color="#F59E0B" material="emissive: #F59E0B; emissiveIntensity: 1.5"></a-sphere>
+        <a-sphere position="2.5 2.4 2.2" radius="0.14" color="#10B981" material="emissive: #10B981; emissiveIntensity: 1.5"></a-sphere>
+      </a-entity>
+
+      <!-- User Rig, Meta Quest Laser Controllers & Gaze Reticle -->
+      <a-entity id="camera-rig" position="0 1.6 0">
+        <a-camera id="main-cam" look-controls="pointerLockEnabled: false">
+          <a-cursor 
+            id="gaze-reticle"
+            animation__click="property: scale; startEvents: click; easing: easeInCubic; dur: 120; from: 0.1 0.1 0.1; to: 1 1 1"
+            animation__fusing="property: fusing; startEvents: fusing; easing: easeInCubic; dur: 1200; from: 1 1 1; to: 0.1 0.1 0.1"
+            raycaster="objects: .clickable" 
+            color="#10B981" 
+            scale="0.6 0.6 0.6"
+            opacity="0.9">
+          </a-cursor>
+        </a-camera>
+
+        <!-- Meta Quest 6DOF Laser Controllers -->
+        <a-entity id="controller-right" laser-controls="hand: right" raycaster="objects: .clickable; lineColor: #10B981; lineOpacity: 0.85"></a-entity>
+        <a-entity id="controller-left" laser-controls="hand: left" raycaster="objects: .clickable; lineColor: #10B981; lineOpacity: 0.85"></a-entity>
+      </a-entity>
+
+      <!-- IN-VR SIMS 3D PLUMBOB (Hovering over the active center stall) -->
+      <a-entity id="in-vr-plumbob" position="0 2.2 -3.2" animation="property: rotation; to: 0 360 0; dur: 4000; loop: true; easing: linear">
+        <a-octahedron radius="0.32" color="#10B981" material="roughness: 0.2; metalness: 0.4; opacity: 0.95"></a-octahedron>
+      </a-entity>
+
       <!-- Dynamic In-VR Floor Hotspots -->
       <a-entity id="vr-hotspot-container"></a-entity>
 
-      <!-- TRUE 3D VOLUMETRIC WEATHER PARTICLES FOR VR HEADSET MODE -->
-      <a-entity id="vr-3d-weather" vr-weather-system></a-entity>
-
-      <!-- AMBIENT & NIGHT LANTERN LIGHTS INSIDE VR -->
-      <a-light id="vr-ambient-light" type="ambient" color="#FFFFFF" intensity="1.0"></a-light>
-      <a-entity id="vr-night-lanterns" visible="false">
-        <a-sphere position="-2.2 2.4 -2.8" radius="0.14" color="#FBBF24" material="emissive: #F59E0B; emissiveIntensity: 1.4"></a-sphere>
-        <a-sphere position="2.2 2.4 -2.8" radius="0.14" color="#FBBF24" material="emissive: #F59E0B; emissiveIntensity: 1.4"></a-sphere>
-        <a-sphere position="-2.5 2.4 2.2" radius="0.14" color="#FBBF24" material="emissive: #F59E0B; emissiveIntensity: 1.4"></a-sphere>
-        <a-sphere position="2.5 2.4 2.2" radius="0.14" color="#FBBF24" material="emissive: #F59E0B; emissiveIntensity: 1.4"></a-sphere>
-      </a-entity>
-
-      <!-- IN-VR FLOATING SPATIAL HUD (SEASONS, DAY/NIGHT, ZONES & LANGUAGE) -->
-      <a-entity id="vr-spatial-hud" position="0 0.92 -2.05" rotation="-16 0 0">
-        <!-- Main Frosted Spatial Console Plate -->
-        <a-plane id="vr-hud-main-panel" width="2.65" height="0.96" color="#0B1118" opacity="0.92" material="roughness: 0.25; metalness: 0.15" position="0 0 0">
-          <!-- Header & Status -->
-          <a-text id="vr-hud-title" value="POORNA MARKET • VR SPATIAL CONSOLE" align="center" position="0 0.40 0.01" scale="0.28 0.28 0.28" color="#10B981"></a-text>
-          <a-text id="vr-hud-substatus" value="SEASON: SUMMER  |  TIME: DAY  |  LANG: EN" align="center" position="0 0.31 0.01" scale="0.21 0.21 0.21" color="#94A3B8"></a-text>
-
-          <!-- ROW 1: MARKET ZONES -->
-          <a-text value="ZONES:" align="left" position="-1.22 0.17 0.01" scale="0.21 0.21 0.21" color="#CBD5E1"></a-text>
-          <a-plane class="clickable in-vr-nav" data-room-key="promenade" position="-0.68 0.17 0.02" width="0.46" height="0.15" color="#10B981">
-            <a-text value="01. Promenade" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-nav" data-room-key="orchard" position="-0.17 0.17 0.02" width="0.46" height="0.15" color="#131D28">
-            <a-text value="02. Orchard" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-nav" data-room-key="floral" position="0.34 0.17 0.02" width="0.46" height="0.15" color="#131D28">
-            <a-text value="03. Floral" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-nav" data-room-key="food" position="0.85 0.17 0.02" width="0.46" height="0.15" color="#131D28">
-            <a-text value="04. Street Food" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-
-          <!-- ROW 2: SEASONS / WEATHER SELECTOR IN VR -->
-          <a-text value="WEATHER:" align="left" position="-1.22 -0.04 0.01" scale="0.21 0.21 0.21" color="#CBD5E1"></a-text>
-          <a-plane class="clickable in-vr-weather" data-vr-weather="summer" position="-0.68 -0.04 0.02" width="0.37" height="0.15" color="#F59E0B">
-            <a-text value="Summer" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-weather" data-vr-weather="spring" position="-0.27 -0.04 0.02" width="0.37" height="0.15" color="#131D28">
-            <a-text value="Spring" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-weather" data-vr-weather="autumn" position="0.14 -0.04 0.02" width="0.37" height="0.15" color="#131D28">
-            <a-text value="Autumn" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-weather" data-vr-weather="winter" position="0.55 -0.04 0.02" width="0.37" height="0.15" color="#131D28">
-            <a-text value="Winter" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane class="clickable in-vr-weather" data-vr-weather="rain" position="0.96 -0.04 0.02" width="0.37" height="0.15" color="#131D28">
-            <a-text value="Rainy" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-
-          <!-- ROW 3: DAY/NIGHT TOGGLE, LANGUAGE CYCLE & HIDE CONSOLE -->
-          <a-text value="CONTROLS:" align="left" position="-1.22 -0.26 0.01" scale="0.21 0.21 0.21" color="#CBD5E1"></a-text>
-          <a-plane id="vr-btn-daynight" class="clickable" position="-0.56 -0.26 0.02" width="0.62" height="0.16" color="#0284C7">
-            <a-text id="vr-daynight-label" value="MODE: DAYLIGHT" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFFFFF"></a-text>
-          </a-plane>
-          <a-plane id="vr-btn-lang" class="clickable" position="0.14 -0.26 0.02" width="0.62" height="0.16" color="#1E293B">
-            <a-text id="vr-lang-label" value="LANG: ENGLISH" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#2DD4BF"></a-text>
-          </a-plane>
-          <a-plane id="vr-btn-hide-menu" class="clickable" position="0.84 -0.26 0.02" width="0.62" height="0.16" color="#334155">
-            <a-text value="HIDE VR MENU" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#F8FAFC"></a-text>
-          </a-plane>
+      <!-- In-VR Floating Spatial Control Console (Locations, Seasons, Day/Night, Language) -->
+      <a-entity id="vr-spatial-hud" position="0 0.95 -2.1" rotation="-14 0 0">
+        <!-- Main Console Backing Plate -->
+        <a-plane width="2.7" height="0.88" color="#0B1118" opacity="0.92" material="roughness: 0.2; metalness: 0.2" position="0 0 0">
+          <a-text id="vr-console-header" value="POORNA MARKET • VR SPATIAL CONSOLE" align="center" position="0 0.36 0.01" scale="0.24 0.24 0.24" color="#10B981"></a-text>
         </a-plane>
 
-        <!-- Minimized Re-Open VR Console Pill (Shown when VR Menu is hidden) -->
-        <a-plane id="vr-btn-show-menu" class="clickable" visible="false" position="0 -0.25 0.05" width="0.95" height="0.18" color="#059669" opacity="0.95">
-          <a-text value="OPEN POORNA MARKET VR MENU" align="center" position="0 0 0.01" scale="0.24 0.24 0.24" color="#FFFFFF"></a-text>
+        <!-- Row 1: 4 Location Tabs -->
+        <a-plane class="clickable in-vr-nav" data-room-key="entrance" position="-0.96 0.16 0.02" width="0.58" height="0.2" color="#10B981">
+          <a-text id="vr-nav-txt-entrance" value="1. Entrance" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#0B1118"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-nav" data-room-key="vegetable" position="-0.32 0.16 0.02" width="0.58" height="0.2" color="#131D28">
+          <a-text id="vr-nav-txt-vegetable" value="2. Vegetable Shop" align="center" position="0 0 0.01" scale="0.21 0.21 0.21" color="#FFF"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-nav" data-room-key="flower" position="0.32 0.16 0.02" width="0.58" height="0.2" color="#131D28">
+          <a-text id="vr-nav-txt-flower" value="3. Flower Shop" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFF"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-nav" data-room-key="cafe" position="0.96 0.16 0.02" width="0.58" height="0.2" color="#131D28">
+          <a-text id="vr-nav-txt-cafe" value="4. Cafe" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FFF"></a-text>
+        </a-plane>
+
+        <!-- Row 2: 5 Seasons / Weather Toggles in VR -->
+        <a-plane class="clickable in-vr-weather" data-weather="summer" position="-0.98 -0.08 0.02" width="0.44" height="0.17" color="#F59E0B">
+          <a-text value="Summer" align="center" position="0 0 0.01" scale="0.2 0.2 0.2" color="#0B1118"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-weather" data-weather="spring" position="-0.49 -0.08 0.02" width="0.44" height="0.17" color="#131D28">
+          <a-text value="Spring" align="center" position="0 0 0.01" scale="0.2 0.2 0.2" color="#F472B6"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-weather" data-weather="autumn" position="0 -0.08 0.02" width="0.44" height="0.17" color="#131D28">
+          <a-text value="Autumn" align="center" position="0 0 0.01" scale="0.2 0.2 0.2" color="#FB923C"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-weather" data-weather="winter" position="0.49 -0.08 0.02" width="0.44" height="0.17" color="#131D28">
+          <a-text value="Winter" align="center" position="0 0 0.01" scale="0.2 0.2 0.2" color="#7DD3FC"></a-text>
+        </a-plane>
+        <a-plane class="clickable in-vr-weather" data-weather="rain" position="0.98 -0.08 0.02" width="0.44" height="0.17" color="#131D28">
+          <a-text value="Rainy" align="center" position="0 0 0.01" scale="0.2 0.2 0.2" color="#60A5FA"></a-text>
+        </a-plane>
+
+        <!-- Row 3: Day / Night Cycle & Language Switcher in VR -->
+        <a-plane id="vr-btn-daynight" class="clickable" position="-0.58 -0.31 0.02" width="1.15" height="0.18" color="#1E293B">
+          <a-text id="vr-daynight-label" value="MODE: DAYLIGHT" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#FBBF24"></a-text>
+        </a-plane>
+
+        <a-plane id="vr-btn-lang" class="clickable" position="0.68 -0.31 0.02" width="0.95" height="0.18" color="#1E293B">
+          <a-text id="vr-lang-label" value="LANG: ENGLISH" align="center" position="0 0 0.01" scale="0.22 0.22 0.22" color="#2DD4BF"></a-text>
         </a-plane>
       </a-entity>
 
     </a-scene>
   </div>
-<!-- ... existing code ... -->
+
+  <!-- ========================================================================= -->
+  <!-- 2D HUD OVERLAYS (Sims 4 UI + Weather + Languages + Site Plan)              -->
+  <!-- ========================================================================= -->
+  <div id="hud-overlay" class="fixed inset-0 pointer-events-none z-20 flex flex-col justify-between p-4 md:p-6 opacity-0 transition-opacity duration-1000">
+    
+    <!-- TOP HUD BAR -->
+    <header class="flex items-center justify-between w-full">
+      
+      <!-- LEFT: LANGUAGE SELECTOR (Default English, options for Hindi & Telugu) -->
+      <div class="pointer-events-auto relative">
+        <button id="btn-language" 
+                class="market-btn flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl text-white font-medium text-xs md:text-sm tracking-wide shadow-xl group">
+          <i class="fa-solid fa-globe text-emerald-400 text-base group-hover:rotate-45 transition-transform duration-300"></i>
+          <span id="current-lang-text" class="font-semibold">English</span>
+          <i class="fa-solid fa-chevron-down text-[10px] text-slate-400 ml-1"></i>
+        </button>
+
+        <!-- Dropdown (EN, HI, TE) -->
+        <div id="dropdown-languages" class="hidden absolute top-full left-0 mt-2 w-48 glass-panel rounded-2xl shadow-2xl p-1.5 flex flex-col space-y-1 text-xs md:text-sm z-30">
+          <button class="lang-option-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center justify-between transition-colors" data-lang="en">
+            <span>English</span>
+            <span class="text-emerald-400 font-mono text-[10px]">EN</span>
+          </button>
+          <button class="lang-option-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center justify-between transition-colors" data-lang="hi">
+            <span>हिंदी (Hindi)</span>
+            <span class="text-emerald-400 font-mono text-[10px]">HI</span>
+          </button>
+          <button class="lang-option-btn w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center justify-between transition-colors" data-lang="te">
+            <span>తెలుగు (Telugu)</span>
+            <span class="text-emerald-400 font-mono text-[10px]">TE</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- CENTER: POORNA MARKET TITLE BANNER -->
+      <div class="glass-panel px-6 py-2.5 rounded-2xl text-center border-emerald-500/30 shadow-2xl">
+        <h2 id="hud-room-title" class="font-display font-extrabold text-base sm:text-xl text-white tracking-wider uppercase" data-i18n="brand_main">POORNA MARKET</h2>
+      </div>
+
+      <!-- RIGHT: WEATHER, DAY/NIGHT, AUDIO & SITE PLAN -->
+      <div class="pointer-events-auto flex items-center space-x-2 sm:space-x-3">
+        <!-- Dynamic Weather Selector -->
+        <div class="relative">
+          <button id="btn-weather-menu" class="market-btn w-10 h-10 rounded-2xl text-teal-300 flex items-center justify-center text-sm shadow-xl" title="Change Weather">
+            <i id="weather-icon" class="fa-solid fa-sun"></i>
+          </button>
+          <div id="dropdown-weather" class="hidden absolute top-full right-0 mt-2 w-40 glass-panel rounded-2xl shadow-2xl p-1.5 flex flex-col space-y-1 text-xs z-30">
+            <button class="weather-btn w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center space-x-2" data-weather="summer">
+              <i class="fa-solid fa-sun text-amber-400"></i> <span data-i18n="weather_summer">Summer</span>
+            </button>
+            <button class="weather-btn w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center space-x-2" data-weather="spring">
+              <i class="fa-solid fa-spa text-pink-400"></i> <span data-i18n="weather_spring">Spring Petals</span>
+            </button>
+            <button class="weather-btn w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center space-x-2" data-weather="autumn">
+              <i class="fa-solid fa-leaf text-amber-600"></i> <span data-i18n="weather_autumn">Autumn Leaves</span>
+            </button>
+            <button class="weather-btn w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center space-x-2" data-weather="winter">
+              <i class="fa-solid fa-snowflake text-sky-300"></i> <span data-i18n="weather_winter">Winter Snow</span>
+            </button>
+            <button class="weather-btn w-full text-left px-3 py-2 rounded-xl hover:bg-emerald-500/20 text-slate-200 flex items-center space-x-2" data-weather="rain">
+              <i class="fa-solid fa-cloud-showers-heavy text-blue-400"></i> <span data-i18n="weather_rain">Rainy</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Day / Night Cycle Toggle -->
+        <button id="btn-daynight" class="market-btn w-10 h-10 rounded-2xl text-amber-300 flex items-center justify-center text-sm shadow-xl" title="Day / Night">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+
+        <!-- Sound SFX Toggle -->
+        <button id="btn-audio-toggle" class="market-btn w-10 h-10 rounded-2xl text-emerald-400 flex items-center justify-center text-sm shadow-xl" title="Toggle Sound">
+          <i class="fa-solid fa-volume-high"></i>
+        </button>
+
+        <!-- Site Plan / Blueprint Button -->
+        <button id="btn-siteplan" 
+                class="market-btn flex items-center space-x-2.5 px-4 py-2.5 rounded-2xl text-white font-medium text-xs md:text-sm tracking-wide shadow-xl group">
+          <i class="fa-solid fa-map-location-dot text-emerald-400 text-base group-hover:scale-110 transition-transform"></i>
+          <span class="hidden sm:inline font-semibold" data-i18n="btn_map">Site Plan</span>
+          <span class="sm:hidden font-semibold" data-i18n="btn_map_short">Plan</span>
+        </button>
+      </div>
+    </header>
+
     <!-- BOTTOM FILMSTRIP CAROUSEL & UTILITY HINTS -->
     <footer class="w-full flex flex-col items-center pointer-events-none mb-1">
-      <div class="mb-2 text-[11px] uppercase tracking-wider text-slate-300 flex flex-wrap justify-center items-center gap-2 pointer-events-auto">
-        <span class="glass-panel px-3.5 py-1 rounded-full"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400 mr-1.5"></i> <span data-i18n="help_drag">Drag to pan 360° • Click POIs</span></span>
-        <button id="btn-enter-vr-hud" class="px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-500 to-teal-400 text-urbanDark font-bold shadow-lg shadow-emerald-500/30 hover:scale-105 transition-transform flex items-center space-x-1.5">
-          <i class="fa-solid fa-vr-cardboard"></i>
-          <span data-i18n="btn_enter_vr">Enter VR Mode</span>
+      <div class="mb-2 text-[11px] uppercase tracking-wider text-slate-300 flex items-center space-x-3 pointer-events-auto">
+        <span class="glass-panel px-3.5 py-1 rounded-full"><i class="fa-solid fa-arrows-up-down-left-right text-emerald-400 mr-1.5"></i> <span data-i18n="help_drag">Drag to pan 360°</span></span>
+        <button id="btn-enter-vr-hud" class="glass-panel px-3.5 py-1 rounded-full text-emerald-300 hover:text-white transition-colors font-semibold">
+          <i class="fa-solid fa-vr-cardboard mr-1"></i> <span>VR Mode</span>
         </button>
         <button id="btn-hide-hud" class="glass-panel px-3.5 py-1 rounded-full hover:text-emerald-300 transition-colors">
           <i class="fa-solid fa-eye-slash mr-1"></i> <span data-i18n="help_hide">Hide UI</span>
         </button>
       </div>
-<!-- ... existing code ... -->
-        loader_title: "INITIALIZING POORNA MARKET 360° SIMULATION",
+
+      <!-- AirPano Style Bottom Carousel (4 Tabs: Entrance, Vegetable Shop, Flower Shop, Cafe) -->
+      <div class="pointer-events-auto flex items-center space-x-2 sm:space-x-3 p-2 glass-panel rounded-2xl max-w-full overflow-x-auto shadow-2xl">
+        <!-- Tab 1: Entrance -->
+        <button class="room-dock-btn flex-shrink-0 flex items-center space-x-3 p-1.5 pr-4 rounded-xl border border-emerald-400/60 bg-emerald-500/20 transition-all duration-300" data-room-key="entrance">
+          <img src="Gemini_Generated_Image_yoro50yoro50yoro_2.png" alt="Entrance" class="w-10 h-10 rounded-lg object-cover">
+          <div class="text-left">
+            <span class="text-[10px] text-emerald-400 font-mono block">01</span>
+            <span class="text-xs font-semibold text-white truncate" data-i18n="room_entrance">Entrance</span>
+          </div>
+        </button>
+
+        <!-- Tab 2: Vegetable Shop -->
+        <button class="room-dock-btn flex-shrink-0 flex items-center space-x-3 p-1.5 pr-4 rounded-xl border border-white/10 hover:border-emerald-400/40 bg-white/5 transition-all duration-300" data-room-key="vegetable">
+          <img src="image_02c924.jpg" alt="Vegetable Shop" class="w-10 h-10 rounded-lg object-cover">
+          <div class="text-left">
+            <span class="text-[10px] text-slate-400 font-mono block">02</span>
+            <span class="text-xs font-semibold text-white truncate" data-i18n="room_vegetable">Vegetable Shop</span>
+          </div>
+        </button>
+
+        <!-- Tab 3: Flower Shop -->
+        <button class="room-dock-btn flex-shrink-0 flex items-center space-x-3 p-1.5 pr-4 rounded-xl border border-white/10 hover:border-emerald-400/40 bg-white/5 transition-all duration-300" data-room-key="flower">
+          <img src="https://images.unsplash.com/photo-1585320806297-9794b3e4eeae?auto=format&fit=crop&w=160&q=80" alt="Flower Shop" class="w-10 h-10 rounded-lg object-cover">
+          <div class="text-left">
+            <span class="text-[10px] text-slate-400 font-mono block">03</span>
+            <span class="text-xs font-semibold text-white truncate" data-i18n="room_flower">Flower Shop</span>
+          </div>
+        </button>
+
+        <!-- Tab 4: Cafe -->
+        <button class="room-dock-btn flex-shrink-0 flex items-center space-x-3 p-1.5 pr-4 rounded-xl border border-white/10 hover:border-emerald-400/40 bg-white/5 transition-all duration-300" data-room-key="cafe">
+          <img src="https://images.unsplash.com/photo-1554118811-1e0d58224f24?auto=format&fit=crop&w=160&q=80" alt="Cafe" class="w-10 h-10 rounded-lg object-cover">
+          <div class="text-left">
+            <span class="text-[10px] text-slate-400 font-mono block">04</span>
+            <span class="text-xs font-semibold text-white truncate" data-i18n="room_cafe">Cafe</span>
+          </div>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Re-open HUD Floating Button -->
+  <button id="btn-unhide-hud" class="hidden fixed bottom-6 left-6 z-30 market-btn w-12 h-12 rounded-full items-center justify-center text-white shadow-2xl">
+    <i class="fa-solid fa-eye text-emerald-400"></i>
+  </button>
+
+  <!-- ========================================================================= -->
+  <!-- MODAL: INTERACTIVE SITE PLAN / ARCHITECTURAL BLUEPRINT                    -->
+  <!-- ========================================================================= -->
+  <div id="modal-siteplan" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md opacity-0 pointer-events-none transition-all duration-300">
+    <div class="relative w-full max-w-4xl glass-panel rounded-3xl overflow-hidden border border-emerald-400/40 shadow-2xl flex flex-col max-h-[92vh]">
+      
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-urbanDark/80">
+        <div class="flex items-center space-x-3">
+          <div class="w-9 h-9 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base">
+            <i class="fa-solid fa-map-location-dot"></i>
+          </div>
+          <div>
+            <h3 class="font-display font-bold text-white text-base md:text-lg" data-i18n="map_heading">POORNA MARKET SITE PLAN</h3>
+            <p class="text-xs text-slate-400" data-i18n="map_subheading">Select any pavilion pin to teleport your camera instantly</p>
+          </div>
+        </div>
+        <button id="btn-close-plan" class="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white flex items-center justify-center transition-colors">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <!-- Blueprint SVG Map -->
+      <div class="relative w-full p-4 md:p-8 flex items-center justify-center bg-[#070D14] overflow-hidden">
+        <div class="relative w-full max-w-2xl aspect-[4/3] border border-emerald-500/25 rounded-2xl bg-[#0B141E] p-4 flex items-center justify-center shadow-inner" 
+             style="background-image: linear-gradient(rgba(16, 185, 129, 0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.08) 1px, transparent 1px); background-size: 26px 26px;">
+          
+          <svg viewBox="0 0 800 600" class="w-full h-full stroke-slate-600 fill-none" stroke-width="2">
+            <!-- Modern Urban Perimeter Avenue -->
+            <rect x="50" y="50" width="700" height="500" rx="16" stroke="#334155" stroke-width="3" stroke-dasharray="8,6"/>
+            
+            <!-- Central Plaza Entrance (Scene 1) -->
+            <rect x="180" y="100" width="440" height="150" rx="8" stroke="#10B981" stroke-width="4" fill="rgba(16, 185, 129, 0.08)"/>
+            
+            <!-- Canopies Layout Grid -->
+            <rect x="200" y="120" width="80" height="45" rx="4" stroke="#E11D48" stroke-width="2" fill="rgba(225, 29, 72, 0.15)"/>
+            <rect x="300" y="120" width="80" height="45" rx="4" stroke="#F59E0B" stroke-width="2" fill="rgba(245, 158, 11, 0.15)"/>
+            <rect x="400" y="120" width="80" height="45" rx="4" stroke="#E11D48" stroke-width="2" fill="rgba(225, 29, 72, 0.15)"/>
+            <rect x="500" y="120" width="80" height="45" rx="4" stroke="#F59E0B" stroke-width="2" fill="rgba(245, 158, 11, 0.15)"/>
+
+            <!-- Vegetable Shop Wing (Scene 2) -->
+            <rect x="100" y="300" width="260" height="200" rx="8" stroke="#38BDF8" stroke-width="3" fill="rgba(56, 189, 248, 0.08)"/>
+
+            <!-- Flower Shop Conservatory (Scene 3) -->
+            <circle cx="530" cy="400" r="85" stroke="#EC4899" stroke-width="3" fill="rgba(236, 72, 153, 0.08)"/>
+
+            <!-- Cafe Lounge Hub (Scene 4) -->
+            <path d="M 360 380 L 440 380 L 440 480 L 360 480 Z" stroke="#F97316" stroke-width="3" fill="rgba(249, 115, 22, 0.15)"/>
+
+            <!-- Compass North -->
+            <g transform="translate(710, 95)">
+              <circle cx="0" cy="0" r="18" stroke="#10B981" stroke-width="1.5"/>
+              <line x1="0" y1="12" x2="0" y2="-12" stroke="#10B981" stroke-width="2"/>
+              <polygon points="0,-16 -5,-7 5,-7" fill="#10B981"/>
+              <text x="-4" y="28" font-family="'Outfit', sans-serif" font-size="11" fill="#10B981" font-weight="bold">N</text>
+            </g>
+
+            <text x="210" y="90" font-family="'Outfit', sans-serif" font-size="12" fill="#10B981" font-weight="bold">01. ENTRANCE</text>
+            <text x="120" y="290" font-family="'Outfit', sans-serif" font-size="12" fill="#38BDF8" font-weight="bold">02. VEGETABLE SHOP</text>
+            <text x="475" y="300" font-family="'Outfit', sans-serif" font-size="12" fill="#EC4899" font-weight="bold">03. FLOWER SHOP</text>
+            <text x="355" y="525" font-family="'Outfit', sans-serif" font-size="12" fill="#F97316" font-weight="bold">04. CAFE</text>
+          </svg>
+
+          <!-- Interactive Teleport Pins -->
+          <div class="absolute cursor-pointer group" style="left: 48%; top: 26%;" data-plan-pin="entrance">
+            <div class="relative flex items-center justify-center">
+              <span class="absolute w-8 h-8 rounded-full bg-emerald-400/40 animate-ping"></span>
+              <div class="plan-pin-badge w-7 h-7 rounded-full bg-emerald-500 text-urbanDark flex items-center justify-center shadow-lg text-xs font-bold group-hover:scale-125 transition-transform border border-white">
+                01
+              </div>
+            </div>
+          </div>
+
+          <div class="absolute cursor-pointer group" style="left: 28%; top: 65%;" data-plan-pin="vegetable">
+            <div class="relative flex items-center justify-center">
+              <div class="plan-pin-badge w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg text-xs font-bold group-hover:scale-125 transition-transform border border-white/30">
+                02
+              </div>
+            </div>
+          </div>
+
+          <div class="absolute cursor-pointer group" style="left: 67%; top: 68%;" data-plan-pin="flower">
+            <div class="relative flex items-center justify-center">
+              <div class="plan-pin-badge w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg text-xs font-bold group-hover:scale-125 transition-transform border border-white/30">
+                03
+              </div>
+            </div>
+          </div>
+
+          <div class="absolute cursor-pointer group" style="left: 50%; top: 72%;" data-plan-pin="cafe">
+            <div class="relative flex items-center justify-center">
+              <div class="plan-pin-badge w-7 h-7 rounded-full bg-slate-800 text-white flex items-center justify-center shadow-lg text-xs font-bold group-hover:scale-125 transition-transform border border-white/30">
+                04
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="px-6 py-3 border-t border-white/10 bg-urbanDark/90 flex items-center justify-between text-xs text-slate-400">
+        <span class="flex items-center space-x-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block"></span>
+          <span data-i18n="map_legend">The emerald marker shows your active 360° location.</span>
+        </span>
+        <span class="font-mono text-emerald-400">POORNA MARKET 1:150</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: DATA STRUCTURES, LOCALIZATION & SIMULATION ENGINE             -->
+  <!-- ========================================================================= -->
+  <script>
+    /* --- 1. Architectural Market Zones & Floor Hotspots Data --- */
+    const marketZones = {
+      entrance: {
+        id: "entrance",
+        asset: "#asset-entrance",
+        titles: {
+          en: "Entrance",
+          hi: "प्रवेश द्वार (Entrance)",
+          te: "ప్రవేశ ద్వారం (Entrance)"
+        },
+        hotspots: [
+          { target: "vegetable", label: "Vegetable Shop", pos: "2.4 -0.6 -1.8" },
+          { target: "flower", label: "Flower Shop", pos: "-2.4 -0.6 -1.5" }
+        ]
+      },
+      vegetable: {
+        id: "vegetable",
+        asset: "#asset-vegetable",
+        titles: {
+          en: "Vegetable Shop",
+          hi: "सब्ज़ी की दुकान (Vegetable Shop)",
+          te: "కూరగాయల దుకాణం (Vegetable Shop)"
+        },
+        hotspots: [
+          { target: "entrance", label: "Entrance", pos: "-3.0 -0.6 0.5" },
+          { target: "cafe", label: "Cafe", pos: "3.0 -0.6 -2.0" }
+        ]
+      },
+      flower: {
+        id: "flower",
+        asset: "#asset-flower",
+        titles: {
+          en: "Flower Shop",
+          hi: "फूलों की दुकान (Flower Shop)",
+          te: "పూల దుకాణం (Flower Shop)"
+        },
+        hotspots: [
+          { target: "entrance", label: "Entrance", pos: "2.8 -0.6 0.8" },
+          { target: "cafe", label: "Cafe", pos: "-2.8 -0.6 -2.2" }
+        ]
+      },
+      cafe: {
+        id: "cafe",
+        asset: "#asset-cafe",
+        titles: {
+          en: "Cafe",
+          hi: "कैफ़े (Cafe)",
+          te: "కేఫ్ (Cafe)"
+        },
+        hotspots: [
+          { target: "vegetable", label: "Vegetable Shop", pos: "-3.0 -0.6 -1.5" },
+          { target: "entrance", label: "Entrance", pos: "0 -0.6 3.0" }
+        ]
+      }
+    };
+
+    /* --- 2. Trilingual Localization Dictionary (EN, HI, TE) --- */
+    const dictionary = {
+      en: {
+        brand_main: "POORNA MARKET",
+        live_weather_badge: "Dynamic Weather & 360° VR Engine",
+        btn_start: "ENTER 360° VR TOUR",
+        room_entrance: "Entrance",
+        room_vegetable: "Vegetable Shop",
+        room_flower: "Flower Shop",
+        room_cafe: "Cafe",
+        loader_title: "INITIALIZING POORNA MARKET 360° VR",
         btn_map: "Site Plan",
         btn_map_short: "Plan",
-        btn_enter_vr: "Enter VR Mode",
-        help_drag: "Drag to pan 360° • Click POIs",
+        help_drag: "Drag to pan 360°",
         help_hide: "Hide UI",
         map_heading: "POORNA MARKET SITE PLAN",
-        map_subheading: "Select any pavilion pin to teleport your camera instantly",
+        map_subheading: "Select any pin to teleport your camera instantly",
         map_legend: "The emerald marker shows your active 360° location.",
-        badge_poi: "Poorna Market Discovery",
-        buff_title: "Life Simulation Buff Added:",
-        btn_listen_guide: "Audio Guide",
-        btn_buy_sample: "Sample Item (§ 15)",
         weather_summer: "Summer Sunshine",
         weather_spring: "Spring Blossom",
         weather_autumn: "Autumn Leaves",
@@ -110,28 +664,21 @@
         weather_rain: "Rain Showers"
       },
       hi: {
-        sub_brand: "पूर्णा मार्केट • सिमुलेशन अनुभव",
-        live_weather_badge: "सक्रिय मौसम एवं 360° सिम्स इंजन",
-        badge_visit: "इंटरैक्टिव 360° वर्चुअल रियलिटी टूर",
-        hero_narrative: "पूर्णा मार्केट के भव्य इमारती लकड़ी के अटरियम में प्रवेश करें। प्राकृतिक धूप, ऊँची कांच की छत और रंग-बिरंगे तंबुओं के नीचे ताज़े फल, सब्ज़ियों और लज़ीज़ व्यंजनों का आनंद लें।",
+        brand_main: "पूर्णा मार्केट",
+        live_weather_badge: "सक्रिय मौसम एवं 360° VR इंजन",
         btn_start: "360° VR टूर प्रारंभ करें",
-        room_promenade: "टिम्बर अटरियम",
-        room_orchard: "फलों का बगीचा",
-        room_floral: "पुष्प मंडप",
-        room_food: "स्ट्रीट फ़ूड गली",
-        loader_title: "पूर्णा मार्केट 360° सिमुलेशन लोड हो रहा है",
+        room_entrance: "प्रवेश द्वार",
+        room_vegetable: "सब्ज़ी की दुकान",
+        room_flower: "फूलों की दुकान",
+        room_cafe: "कैफ़े",
+        loader_title: "पूर्णा मार्केट 360° VR लोड हो रहा है",
         btn_map: "साइट का नक्शा",
         btn_map_short: "नक्शा",
-        btn_enter_vr: "VR मोड शुरू करें",
-        help_drag: "360° घुमाने के लिए ड्रैग करें • बिंदुओं पर क्लिक करें",
+        help_drag: "360° घुमाने के लिए ड्रैग करें",
         help_hide: "UI छुपाएं",
         map_heading: "पूर्णा मार्केट साइट प्लान",
         map_subheading: "तुरंत वहां जाने के लिए किसी भी पिन पर क्लिक करें",
         map_legend: "हरा मार्कर आपके वर्तमान स्थान को दर्शाता है।",
-        badge_poi: "पूर्णा मार्केट की विशेष खोज",
-        buff_title: "सिमुलेशन बफ़ प्राप्त हुआ:",
-        btn_listen_guide: "ऑडियो गाइड सुनें",
-        btn_buy_sample: "आइटम खरीदें (§ 15)",
         weather_summer: "गर्मी की धूप",
         weather_spring: "वसंत के फूल",
         weather_autumn: "पतझड़ के पत्ते",
@@ -139,28 +686,21 @@
         weather_rain: "बरसात"
       },
       te: {
-        sub_brand: "పూర్ణ మార్కెట్ • లైఫ్ సిమ్యులేషన్",
-        live_weather_badge: "వాతావరణ మార్పులు & 360° సిమ్స్ ఇంజిన్",
-        badge_visit: "ఇంటరాక్టివ్ ఆర్కిటెక్చరల్ 360° VR టూర్",
-        hero_narrative: "పూర్ణ మార్కెట్ యొక్క అద్భుతమైన గ్లాస్ స్కైలైట్ మరియు సహజ కలప నిర్మాణాల లోపలికి అడుగుపెట్టండి. రంగురంగుల డేరాలు, తాజా పంటలు మరియు ప్రత్యేక వంటకాలను 360 డిగ్రీల వర్చువల్ రియాలిటీలో వీక్షించండి.",
+        brand_main: "పూర్ణ మార్కెట్",
+        live_weather_badge: "వాతావరణ మార్పులు & 360° VR ఇంజిన్",
         btn_start: "360° VR టూర్‌ను ప్రారంభించండి",
-        room_promenade: "టింబర్ అట్రియం",
-        room_orchard: "పండ్ల తోట",
-        room_floral: "పుష్ప మండపం",
-        room_food: "స్ట్రీట్ ఫుడ్ అల్లే",
-        loader_title: "పూర్ణ మార్కెట్ 360° లోడ్ అవుతోంది",
+        room_entrance: "ప్రవేశ ద్వారం",
+        room_vegetable: "కూరగాయల దుకాణం",
+        room_flower: "పూల దుకాణం",
+        room_cafe: "కేఫ్",
+        loader_title: "పూర్ణ మార్కెట్ 360° VR లోడ్ అవుతోంది",
         btn_map: "సైట్ ప్లాన్",
         btn_map_short: "ప్లాన్",
-        btn_enter_vr: "VR మోడ్ లోకి వెళ్ళండి",
-        help_drag: "360° తిప్పడానికి డ్రాగ్ చేయండి • పిన్స్‌పై క్లిక్ చేయండి",
+        help_drag: "360° తిప్పడానికి డ్రాగ్ చేయండి",
         help_hide: "UI దాచు",
         map_heading: "పూర్ణ మార్కెట్ సైట్ ప్లాన్",
         map_subheading: "ఆ ప్రదేశానికి వెళ్ళడానికి ఏదైనా పిన్‌ను ఎంచుకోండి",
         map_legend: "ఆకుపచ్చ మార్కర్ ప్రస్తుత లొకేషన్‌ను సూచిస్తుంది.",
-        badge_poi: "పూర్ణ మార్కెట్ ప్రత్యేకత",
-        buff_title: "సిమ్యులేషన్ బఫ్ జోడించబడింది:",
-        btn_listen_guide: "ఆడియో గైడ్ వినండి",
-        btn_buy_sample: "వస్తువును కొనండి (§ 15)",
         weather_summer: "ఎండ కాలం",
         weather_spring: "వసంత ఋతువు",
         weather_autumn: "ఆకురాలే కాలం",
@@ -168,8 +708,42 @@
         weather_rain: "వర్షం"
       }
     };
-<!-- ... existing code ... -->
-    const vrPoiContainer = document.getElementById('vr-poi-container');
+
+    /* --- Application State --- */
+    let currentLanguage = 'en'; // STRICT DEFAULT TO ENGLISH
+    let currentZoneKey = 'entrance';
+    let currentWeather = 'summer';
+    let isDayMode = true;
+    let audioContext = null;
+    let isAudioPlaying = true;
+
+    /* --- DOM Elements --- */
+    const screenWelcome = document.getElementById('screen-welcome');
+    const screenLoader = document.getElementById('screen-loader');
+    const hudOverlay = document.getElementById('hud-overlay');
+    const btnStartVisit = document.getElementById('btn-start-visit');
+    const loaderProgressBar = document.getElementById('loader-progress-bar');
+    const loaderPercentage = document.getElementById('loader-percentage');
+    const loaderTelemetry = document.getElementById('loader-telemetry');
+    const vrSky = document.getElementById('vr-sky');
+    const vrAmbientLight = document.getElementById('vr-ambient-light');
+    const vrNightLanterns = document.getElementById('vr-night-lanterns');
+    const vr3dWeather = document.getElementById('vr-3d-weather');
+    const hudRoomTitle = document.getElementById('hud-room-title');
+    const btnLanguage = document.getElementById('btn-language');
+    const dropdownLanguages = document.getElementById('dropdown-languages');
+    const currentLangText = document.getElementById('current-lang-text');
+    const btnSiteplan = document.getElementById('btn-siteplan');
+    const modalSiteplan = document.getElementById('modal-siteplan');
+    const btnClosePlan = document.getElementById('btn-close-plan');
+    const btnHideHud = document.getElementById('btn-hide-hud');
+    const btnUnhideHud = document.getElementById('btn-unhide-hud');
+    const btnEnterVrHud = document.getElementById('btn-enter-vr-hud');
+    const btnAudioToggle = document.getElementById('btn-audio-toggle');
+    const btnWeatherMenu = document.getElementById('btn-weather-menu');
+    const dropdownWeather = document.getElementById('dropdown-weather');
+    const weatherIcon = document.getElementById('weather-icon');
+    const btnDaynight = document.getElementById('btn-daynight');
     const vrHotspotContainer = document.getElementById('vr-hotspot-container');
     const roomDockBtns = document.querySelectorAll('.room-dock-btn');
     const planPins = document.querySelectorAll('[data-plan-pin]');
@@ -179,121 +753,78 @@
     const vrDaynightLabel = document.getElementById('vr-daynight-label');
     const vrBtnLang = document.getElementById('vr-btn-lang');
     const vrLangLabel = document.getElementById('vr-lang-label');
-    const vrHudSubstatus = document.getElementById('vr-hud-substatus');
-    const vrHudMainPanel = document.getElementById('vr-hud-main-panel');
-    const vrBtnHideMenu = document.getElementById('vr-btn-hide-menu');
-    const vrBtnShowMenu = document.getElementById('vr-btn-show-menu');
-    const vrNightLanterns = document.getElementById('vr-night-lanterns');
-    const vrAmbientLight = document.getElementById('vr-ambient-light');
-    const btnEnterVrHud = document.getElementById('btn-enter-vr-hud');
 
-    /* --- A-Frame Native 3D Volumetric Weather Particle System for Headset VR --- */
-    if (typeof AFRAME !== 'undefined' && !AFRAME.components['vr-weather-system']) {
-      AFRAME.registerComponent('vr-weather-system', {
-        init: function () {
-          this.particles = [];
-          this.poolSize = 110;
-          this.activeType = 'summer';
-          for (let i = 0; i < this.poolSize; i++) {
-            const el = document.createElement('a-entity');
-            el.setAttribute('geometry', { primitive: 'sphere', radius: 0.025 });
-            el.setAttribute('material', { color: '#FBBF24', shader: 'flat', opacity: 0.7 });
-            const rx = (Math.random() - 0.5) * 14;
-            const ry = Math.random() * 6 + 0.5;
-            const rz = (Math.random() - 0.5) * 14;
-            el.setAttribute('position', { x: rx, y: ry, z: rz });
-            this.el.appendChild(el);
-            this.particles.push({
-              el: el,
-              x: rx,
-              y: ry,
-              z: rz,
-              speed: Math.random() * 0.03 + 0.015,
-              drift: (Math.random() - 0.5) * 0.015,
-              phase: Math.random() * Math.PI * 2
-            });
-          }
-          this.updateAppearance('summer');
-        },
-        updateAppearance: function (weatherType) {
-          this.activeType = weatherType;
-          this.particles.forEach((p, idx) => {
-            if (weatherType === 'summer') {
-              p.el.setAttribute('visible', idx < 45);
-              p.el.setAttribute('geometry', { primitive: 'sphere', radius: 0.022 });
-              p.el.setAttribute('material', { color: '#FBBF24', shader: 'flat', opacity: 0.6 });
-              p.speed = 0.006;
-            } else if (weatherType === 'spring') {
-              p.el.setAttribute('visible', idx < 85);
-              p.el.setAttribute('geometry', { primitive: 'plane', width: 0.07, height: 0.045 });
-              p.el.setAttribute('material', { color: '#F472B6', side: 'double', shader: 'flat', opacity: 0.85 });
-              p.speed = 0.016;
-            } else if (weatherType === 'autumn') {
-              p.el.setAttribute('visible', idx < 85);
-              p.el.setAttribute('geometry', { primitive: 'plane', width: 0.08, height: 0.08 });
-              p.el.setAttribute('material', { color: '#D97706', side: 'double', shader: 'flat', opacity: 0.9 });
-              p.speed = 0.022;
-            } else if (weatherType === 'winter') {
-              p.el.setAttribute('visible', true);
-              p.el.setAttribute('geometry', { primitive: 'sphere', radius: 0.026 });
-              p.el.setAttribute('material', { color: '#FFFFFF', shader: 'flat', opacity: 0.88 });
-              p.speed = 0.018;
-            } else if (weatherType === 'rain') {
-              p.el.setAttribute('visible', true);
-              p.el.setAttribute('geometry', { primitive: 'cylinder', radius: 0.005, height: 0.28 });
-              p.el.setAttribute('material', { color: '#60A5FA', shader: 'flat', opacity: 0.72 });
-              p.speed = 0.14;
-            }
-          });
-        },
-        tick: function (time, delta) {
-          const dt = Math.min(delta || 16, 50) / 16.6;
-          for (let i = 0; i < this.particles.length; i++) {
-            const p = this.particles[i];
-            if (this.activeType === 'summer') {
-              p.y += p.speed * dt;
-              p.x += Math.sin(time * 0.001 + p.phase) * 0.004 * dt;
-              if (p.y > 6.5) p.y = 0.4;
-            } else {
-              p.y -= p.speed * dt;
-              if (this.activeType !== 'rain') {
-                p.x += Math.sin(time * 0.0015 + p.phase) * 0.012 * dt + p.drift * dt;
-                p.el.object3D.rotation.x += 0.03 * dt;
-                p.el.object3D.rotation.y += 0.04 * dt;
-              } else {
-                p.el.object3D.rotation.set(0, 0, 0);
-              }
-              if (p.y < 0.1) {
-                p.y = 6.5;
-                p.x = (Math.random() - 0.5) * 14;
-                p.z = (Math.random() - 0.5) * 14;
-              }
-            }
-            p.el.object3D.position.set(p.x, p.y, p.z);
-          }
-        }
-      });
-    }
+    /* --- 3. Screen Transitions: 1 (Hero) -> 2 (Blanket-out) -> 3 (VR) --- */
+    btnStartVisit.addEventListener('click', () => {
+      initAudio();
+      playChime(523.25, 0.15); // C5
 
-    function syncVrConsoleStatus() {
-      if (!vrHudSubstatus) return;
-      const langNames = { en: 'ENGLISH', hi: 'HINDI', te: 'TELUGU' };
-      const modeName = isDayMode ? 'DAY' : 'NIGHT';
-      vrHudSubstatus.setAttribute(
-        'value',
-        `SEASON: ${currentWeather.toUpperCase()}  |  TIME: ${modeName}  |  LANG: ${currentLanguage.toUpperCase()}`
-      );
-      if (vrDaynightLabel) {
-        vrDaynightLabel.setAttribute('value', isDayMode ? 'MODE: DAYLIGHT' : 'MODE: NIGHTTIME');
-      }
-      if (vrBtnDaynight) {
-        vrBtnDaynight.setAttribute('color', isDayMode ? '#0284C7' : '#312E81');
-      }
-      if (vrLangLabel) {
-        vrLangLabel.setAttribute('value', `LANG: ${langNames[currentLanguage] || 'ENGLISH'}`);
-      }
-    }
-<!-- ... existing code ... -->
+      screenWelcome.style.opacity = '0';
+      screenWelcome.style.pointerEvents = 'none';
+
+      setTimeout(() => {
+        screenWelcome.classList.add('hidden');
+        screenLoader.style.opacity = '1';
+        screenLoader.style.pointerEvents = 'auto';
+
+        let progress = 0;
+        const telemetrySteps = [
+          "MAPPING PLAZA ELEVATIONS...",
+          "CALIBRATING 360° SPATIAL PANORAMAS...",
+          "LOADING VEGETABLE, FLOWER & CAFE ZONES...",
+          "CONFIGURING IN-VR SEASONS & DAY/NIGHT...",
+          "ENGAGING 360° WEBXR ENGINE..."
+        ];
+
+        const interval = setInterval(() => {
+          progress += Math.floor(Math.random() * 14) + 8;
+          if (progress > 100) progress = 100;
+
+          loaderProgressBar.style.width = `${progress}%`;
+          loaderPercentage.textContent = `${progress}%`;
+
+          const idx = Math.min(Math.floor((progress / 100) * telemetrySteps.length), telemetrySteps.length - 1);
+          loaderTelemetry.textContent = telemetrySteps[idx];
+
+          if (progress >= 100) {
+            clearInterval(interval);
+            setTimeout(() => {
+              screenLoader.style.opacity = '0';
+              screenLoader.style.pointerEvents = 'none';
+              setTimeout(() => {
+                screenLoader.classList.add('hidden');
+                hudOverlay.style.opacity = '1';
+                loadZone('entrance');
+                initWeatherCanvas();
+                updateVr3dWeather('summer');
+              }, 600);
+            }, 350);
+          }
+        }, 70);
+
+      }, 600);
+    });
+
+    /* --- 4. Market Zone Loading & 3D Entity Spawning --- */
+    function loadZone(zoneKey) {
+      if (!marketZones[zoneKey]) return;
+      currentZoneKey = zoneKey;
+      const zone = marketZones[zoneKey];
+
+      // Skybox crossfade preserving Day/Night tint
+      const targetTint = isDayMode ? '#FFFFFF' : '#445566';
+      vrSky.setAttribute('material', 'color', '#070D14');
+      setTimeout(() => {
+        vrSky.setAttribute('src', zone.asset);
+        vrSky.setAttribute('material', 'color', targetTint);
+      }, 200);
+
+      // Keep top center title strictly "POORNA MARKET" in the active language
+      hudRoomTitle.textContent = dictionary[currentLanguage].brand_main;
+
+      // Spawn in-VR Floor Hotspots
+      renderInVrHotspots(zone.hotspots);
+
       // Update Bottom Dock styling
       roomDockBtns.forEach(btn => {
         const isCurrent = btn.getAttribute('data-room-key') === zoneKey;
@@ -303,52 +834,172 @@
         btn.classList.toggle('bg-white/5', !isCurrent);
       });
 
-      // Highlight active zone inside VR Spatial Console
+      // Update In-VR 3D Console active button highlight
       inVrNavBtns.forEach(btn => {
         const isCurrent = btn.getAttribute('data-room-key') === zoneKey;
         btn.setAttribute('color', isCurrent ? '#10B981' : '#131D28');
+        const txt = btn.querySelector('a-text');
+        if (txt) txt.setAttribute('color', isCurrent ? '#0B1118' : '#FFFFFF');
       });
 
       // Update Site Plan Active Pin
       planPins.forEach(pin => {
-<!-- ... existing code ... -->
-      // Update active zone titles & re-render POIs
-      const zone = marketZones[currentZoneKey];
-      if (zone) {
-        hudRoomTitle.textContent = zone.titles[lang];
-        hudRoomDesc.textContent = zone.descriptions[lang];
-        renderInVrPois(zone.pois);
+        const pinKey = pin.getAttribute('data-plan-pin');
+        const badge = pin.querySelector('.plan-pin-badge');
+        if (pinKey === zoneKey) {
+          badge.classList.remove('bg-slate-800', 'text-white');
+          badge.classList.add('bg-emerald-500', 'text-urbanDark');
+        } else {
+          badge.classList.add('bg-slate-800', 'text-white');
+          badge.classList.remove('bg-emerald-500', 'text-urbanDark');
+        }
+      });
+    }
+
+    // In-VR Points of Interest
+    function renderInVrPois(pois) {
+      while (vrPoiContainer.firstChild) {
+        vrPoiContainer.removeChild(vrPoiContainer.firstChild);
+      }
+      if (!pois) return;
+
+      pois.forEach(poi => {
+        const poiEntity = document.createElement('a-entity');
+        poiEntity.setAttribute('position', poi.pos);
+        poiEntity.setAttribute('class', 'clickable');
+
+        const ring = document.createElement('a-ring');
+        ring.setAttribute('radius-inner', '0.14');
+        ring.setAttribute('radius-outer', '0.22');
+        ring.setAttribute('color', '#10B981');
+        ring.setAttribute('opacity', '0.9');
+        ring.setAttribute('animation', 'property: scale; dir: alternate; dur: 1200; to: 1.25 1.25 1.25; loop: true');
+
+        const circle = document.createElement('a-circle');
+        circle.setAttribute('radius', '0.12');
+        circle.setAttribute('color', '#059669');
+        circle.setAttribute('opacity', '0.95');
+
+        const txt = document.createElement('a-text');
+        txt.setAttribute('value', poi.title[currentLanguage] || poi.title.en);
+        txt.setAttribute('align', 'center');
+        txt.setAttribute('position', '0 0.35 0');
+        txt.setAttribute('scale', '0.45 0.45 0.45');
+        txt.setAttribute('color', '#FFFFFF');
+
+        poiEntity.appendChild(ring);
+        poiEntity.appendChild(circle);
+        poiEntity.appendChild(txt);
+
+        poiEntity.addEventListener('click', () => {
+          openPoiModal(poi);
+        });
+
+        vrPoiContainer.appendChild(poiEntity);
+      });
+    }
+
+    // In-VR Floor Navigational Hotspots
+    function renderInVrHotspots(hotspots) {
+      while (vrHotspotContainer.firstChild) {
+        vrHotspotContainer.removeChild(vrHotspotContainer.firstChild);
+      }
+      if (!hotspots) return;
+
+      hotspots.forEach(spot => {
+        const hotspotEntity = document.createElement('a-entity');
+        hotspotEntity.setAttribute('position', spot.pos);
+        hotspotEntity.setAttribute('rotation', '-90 0 0');
+        hotspotEntity.setAttribute('class', 'clickable');
+
+        const ring = document.createElement('a-ring');
+        ring.setAttribute('radius-inner', '0.25');
+        ring.setAttribute('radius-outer', '0.36');
+        ring.setAttribute('color', '#2DD4BF');
+        ring.setAttribute('opacity', '0.9');
+        ring.setAttribute('animation', 'property: scale; dir: alternate; dur: 1400; to: 1.2 1.2 1.2; loop: true');
+
+        const circle = document.createElement('a-circle');
+        circle.setAttribute('radius', '0.2');
+        circle.setAttribute('color', '#059669');
+        circle.setAttribute('opacity', '0.85');
+
+        const translatedSpotLabel = dictionary[currentLanguage][`room_${spot.target}`] || spot.label;
+        const txt = document.createElement('a-text');
+        txt.setAttribute('value', translatedSpotLabel);
+        txt.setAttribute('align', 'center');
+        txt.setAttribute('position', '0 0.55 0');
+        txt.setAttribute('rotation', '90 0 0');
+        txt.setAttribute('scale', '0.55 0.55 0.55');
+        txt.setAttribute('color', '#FFFFFF');
+
+        hotspotEntity.appendChild(ring);
+        hotspotEntity.appendChild(circle);
+        hotspotEntity.appendChild(txt);
+
+        hotspotEntity.addEventListener('click', () => {
+          loadZone(spot.target);
+          playChime(659.25, 0.1); // E5
+        });
+
+        vrHotspotContainer.appendChild(hotspotEntity);
+      });
+    }
+
+    /* --- 5. Trilingual Switching Engine (Default English, Hindi, Telugu) --- */
+    function setLanguage(lang) {
+      if (!dictionary[lang]) return;
+      currentLanguage = lang;
+
+      const labels = { en: "English", hi: "हिंदी (Hindi)", te: "తెలుగు (Telugu)" };
+      currentLangText.textContent = labels[lang];
+      if (vrLangLabel) {
+        const shortLabels = { en: "LANG: ENGLISH", hi: "LANG: HINDI", te: "LANG: TELUGU" };
+        vrLangLabel.setAttribute('value', shortLabels[lang]);
       }
 
-      syncVrConsoleStatus();
+      // Update Screen 1 quick toggles
+      document.querySelectorAll('.hero-lang-btn').forEach(btn => {
+        const isSelected = btn.getAttribute('data-lang') === lang;
+        btn.classList.toggle('text-emerald-400', isSelected);
+        btn.classList.toggle('font-bold', isSelected);
+        btn.classList.toggle('bg-white/10', isSelected);
+        btn.classList.toggle('text-slate-300', !isSelected);
+      });
+
+      // Update all data-i18n elements
+      document.querySelectorAll('[data-i18n]').forEach(el => {
+        const key = el.getAttribute('data-i18n');
+        if (dictionary[lang][key]) {
+          el.textContent = dictionary[lang][key];
+        }
+      });
+
+      // Update In-VR Console Zone Labels
+      const vrEntranceTxt = document.getElementById('vr-nav-txt-entrance');
+      const vrVegTxt = document.getElementById('vr-nav-txt-vegetable');
+      const vrFlowerTxt = document.getElementById('vr-nav-txt-flower');
+      const vrCafeTxt = document.getElementById('vr-nav-txt-cafe');
+      if (vrEntranceTxt) vrEntranceTxt.setAttribute('value', `1. ${dictionary[lang].room_entrance}`);
+      if (vrVegTxt) vrVegTxt.setAttribute('value', `2. ${dictionary[lang].room_vegetable}`);
+      if (vrFlowerTxt) vrFlowerTxt.setAttribute('value', `3. ${dictionary[lang].room_flower}`);
+      if (vrCafeTxt) vrCafeTxt.setAttribute('value', `4. ${dictionary[lang].room_cafe}`);
+
+      // Re-render Floor Hotspots in chosen language
+      const zone = marketZones[currentZoneKey];
+      if (zone) {
+        renderInVrHotspots(zone.hotspots);
+      }
+
       dropdownLanguages.classList.add('hidden');
       playChime(587.33, 0.08); // D5
     }
-<!-- ... existing code ... -->
-    inVrNavBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const key = btn.getAttribute('data-room-key');
-        loadZone(key);
-        playChime(659.25, 0.1);
-      });
+
+    btnLanguage.addEventListener('click', (e) => {
+      e.stopPropagation();
+      dropdownLanguages.classList.toggle('hidden');
     });
 
-    // In-VR Season / Weather Buttons
-    inVrWeatherBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const type = btn.getAttribute('data-vr-weather');
-        setWeather(type);
-      });
-    });
-
-    // In-VR Day / Night Toggle Button
-    if (vrBtnDaynight) {
-      vrBtnDaynight.addEventListener('click', () => {
-        toggleDayNight();
-      });
-    }
-
-    // In-VR Language Cycler (EN -> HI -> TE -> EN)
     if (vrBtnLang) {
       vrBtnLang.addEventListener('click', () => {
         const order = ['en', 'hi', 'te'];
@@ -357,33 +1008,140 @@
       });
     }
 
-    // In-VR Hide / Reopen Spatial Menu
-    if (vrBtnHideMenu && vrBtnShowMenu && vrHudMainPanel) {
-      vrBtnHideMenu.addEventListener('click', () => {
-        vrHudMainPanel.setAttribute('visible', 'false');
-        vrBtnShowMenu.setAttribute('visible', 'true');
-        playChime(440, 0.08);
-      });
-      vrBtnShowMenu.addEventListener('click', () => {
-        vrHudMainPanel.setAttribute('visible', 'true');
-        vrBtnShowMenu.setAttribute('visible', 'false');
-        playChime(587.33, 0.08);
-      });
-    }
+    document.addEventListener('click', () => {
+      if (!dropdownLanguages.classList.contains('hidden')) {
+        dropdownLanguages.classList.add('hidden');
+      }
+      if (!dropdownWeather.classList.contains('hidden')) {
+        dropdownWeather.classList.add('hidden');
+      }
+    });
 
-    // Explicit 2D HUD Enter VR Mode button
+    document.querySelectorAll('.lang-option-btn, .hero-lang-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const lang = btn.getAttribute('data-lang');
+        setLanguage(lang);
+      });
+    });
+
+    /* --- 7. Interactive Site Plan, VR Launcher & Carousel Navigation --- */
+    btnSiteplan.addEventListener('click', () => {
+      modalSiteplan.classList.remove('opacity-0', 'pointer-events-none');
+      playChime(659.25, 0.08);
+    });
+
+    btnClosePlan.addEventListener('click', () => {
+      modalSiteplan.classList.add('opacity-0', 'pointer-events-none');
+    });
+
+    planPins.forEach(pin => {
+      pin.addEventListener('click', () => {
+        const target = pin.getAttribute('data-plan-pin');
+        loadZone(target);
+        modalSiteplan.classList.add('opacity-0', 'pointer-events-none');
+      });
+    });
+
+    roomDockBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-room-key');
+        loadZone(key);
+      });
+    });
+
+    inVrNavBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const key = btn.getAttribute('data-room-key');
+        loadZone(key);
+        playChime(659.25, 0.08);
+      });
+    });
+
     if (btnEnterVrHud) {
       btnEnterVrHud.addEventListener('click', () => {
-        const sceneEl = document.querySelector('a-scene');
-        if (sceneEl && sceneEl.enterVR) {
-          sceneEl.enterVR();
+        const scene = document.querySelector('a-scene');
+        if (scene && scene.enterVR) {
+          scene.enterVR();
         }
       });
     }
-<!-- ... existing code ... -->
+
+    btnHideHud.addEventListener('click', () => {
+      hudOverlay.style.opacity = '0';
+      hudOverlay.style.pointerEvents = 'none';
+      btnUnhideHud.classList.remove('hidden');
+      btnUnhideHud.classList.add('flex');
+    });
+
+    btnUnhideHud.addEventListener('click', () => {
+      hudOverlay.style.opacity = '1';
+      hudOverlay.style.pointerEvents = 'auto';
+      btnUnhideHud.classList.add('hidden');
+      btnUnhideHud.classList.remove('flex');
+    });
+
+    /* --- 8. Dynamic Weather Simulation (2D Canvas + In-VR 3D Volumetric Particles) --- */
+    let canvas, ctx, particles = [];
+    
+    function initWeatherCanvas() {
+      canvas = document.getElementById('weather-canvas');
+      ctx = canvas.getContext('2d');
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      createParticles();
+      animateWeather();
+    }
+
+    function resizeCanvas() {
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+
+    function updateVr3dWeather(weatherType) {
+      if (!vr3dWeather) return;
+      while (vr3dWeather.firstChild) {
+        vr3dWeather.removeChild(vr3dWeather.firstChild);
+      }
+
+      const configs = {
+        summer: { count: 24, color: '#FBBF24', radius: 0.025, speed: 5000, dir: 1 },
+        spring: { count: 40, color: '#F472B6', radius: 0.04, speed: 3500, dir: -1 },
+        autumn: { count: 40, color: '#EA580C', radius: 0.045, speed: 3000, dir: -1 },
+        winter: { count: 55, color: '#FFFFFF', radius: 0.03, speed: 4000, dir: -1 },
+        rain:   { count: 70, color: '#60A5FA', radius: 0.015, speed: 950, dir: -1 }
+      };
+
+      const cfg = configs[weatherType] || configs.summer;
+      for (let i = 0; i < cfg.count; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const dist = 1.6 + Math.random() * 2.8;
+        const x = Math.cos(angle) * dist;
+        const z = Math.sin(angle) * dist;
+        const startY = cfg.dir === -1 ? (1.2 + Math.random() * 2.0) : (-1.2 + Math.random() * 1.5);
+        const endY = cfg.dir === -1 ? -2.2 : 2.2;
+
+        const el = document.createElement(weatherType === 'rain' ? 'a-cylinder' : 'a-sphere');
+        if (weatherType === 'rain') {
+          el.setAttribute('radius', '0.006');
+          el.setAttribute('height', '0.22');
+        } else {
+          el.setAttribute('radius', cfg.radius);
+        }
+        el.setAttribute('color', cfg.color);
+        el.setAttribute('material', 'shader: flat; opacity: 0.8');
+        el.setAttribute('position', `${x.toFixed(2)} ${startY.toFixed(2)} ${z.toFixed(2)}`);
+        el.setAttribute('animation', `property: position; from: ${x.toFixed(2)} ${startY.toFixed(2)} ${z.toFixed(2)}; to: ${x.toFixed(2)} ${endY.toFixed(2)} ${z.toFixed(2)}; dur: ${cfg.speed + Math.random() * 1200}; loop: true; easing: linear`);
+        vr3dWeather.appendChild(el);
+      }
+    }
+
     function setWeather(weatherType) {
       currentWeather = weatherType;
       createParticles();
+      updateVr3dWeather(weatherType);
+
       const icons = {
         summer: 'fa-sun text-amber-400',
         spring: 'fa-spa text-pink-400',
@@ -392,26 +1150,14 @@
         rain: 'fa-cloud-showers-heavy text-blue-400'
       };
       weatherIcon.className = `fa-solid ${icons[weatherType] || 'fa-sun'}`;
-      dropdownWeather.classList.add('hidden');
 
-      // Update In-VR 3D Weather Particles & 3D Season Button Highlights
-      const vrWeatherEl = document.getElementById('vr-3d-weather');
-      if (vrWeatherEl && vrWeatherEl.components['vr-weather-system']) {
-        vrWeatherEl.components['vr-weather-system'].updateAppearance(weatherType);
-      }
-      const weatherColors = {
-        summer: '#F59E0B',
-        spring: '#EC4899',
-        autumn: '#D97706',
-        winter: '#0284C7',
-        rain: '#2563EB'
-      };
+      // Highlight active season button inside VR console
       inVrWeatherBtns.forEach(btn => {
-        const btnType = btn.getAttribute('data-vr-weather');
-        btn.setAttribute('color', btnType === weatherType ? (weatherColors[weatherType] || '#10B981') : '#131D28');
+        const isMatch = btn.getAttribute('data-weather') === weatherType;
+        btn.setAttribute('color', isMatch ? '#10B981' : '#131D28');
       });
 
-      syncVrConsoleStatus();
+      dropdownWeather.classList.add('hidden');
       playChime(698.46, 0.08); // F5
     }
 
@@ -428,7 +1174,14 @@
       });
     });
 
-    // Day / Night Cycle (Synchronized across 2D HUD and 3D VR Headset Mode)
+    inVrWeatherBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const type = btn.getAttribute('data-weather');
+        setWeather(type);
+      });
+    });
+
+    // Day / Night Cycle (Synced across 2D HUD and In-VR 3D Console & Lanterns)
     function toggleDayNight() {
       isDayMode = !isDayMode;
       if (isDayMode) {
@@ -438,19 +1191,150 @@
         btnDaynight.innerHTML = '<i class="fa-solid fa-moon"></i>';
         btnDaynight.classList.remove('text-blue-400');
         btnDaynight.classList.add('text-amber-300');
+        if (vrDaynightLabel) {
+          vrDaynightLabel.setAttribute('value', 'MODE: DAYLIGHT');
+          vrDaynightLabel.setAttribute('color', '#FBBF24');
+        }
       } else {
-        vrSky.setAttribute('material', 'color', '#3B4D63'); // Atmospheric night market lighting
-        if (vrAmbientLight) vrAmbientLight.setAttribute('intensity', '0.55');
+        vrSky.setAttribute('material', 'color', '#445566'); // Night market ambiance
+        if (vrAmbientLight) vrAmbientLight.setAttribute('intensity', '0.45');
         if (vrNightLanterns) vrNightLanterns.setAttribute('visible', 'true');
         btnDaynight.innerHTML = '<i class="fa-solid fa-sun"></i>';
         btnDaynight.classList.remove('text-amber-300');
         btnDaynight.classList.add('text-blue-400');
+        if (vrDaynightLabel) {
+          vrDaynightLabel.setAttribute('value', 'MODE: NIGHTTIME');
+          vrDaynightLabel.setAttribute('color', '#60A5FA');
+        }
       }
-      syncVrConsoleStatus();
       playChime(440, 0.08);
     }
 
-    btnDaynight.addEventListener('click', () => {
-      toggleDayNight();
+    btnDaynight.addEventListener('click', toggleDayNight);
+    if (vrBtnDaynight) {
+      vrBtnDaynight.addEventListener('click', toggleDayNight);
+    }
+
+    function createParticles() {
+      particles = [];
+      const count = currentWeather === 'rain' ? 120 : (currentWeather === 'summer' ? 25 : 60);
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * (canvas ? canvas.width : 800),
+          y: Math.random() * (canvas ? canvas.height : 600),
+          size: Math.random() * 4 + 2,
+          speedY: Math.random() * 2 + 1,
+          speedX: (Math.random() - 0.5) * 1.5,
+          angle: Math.random() * Math.PI * 2,
+          spin: (Math.random() - 0.5) * 0.05
+        });
+      }
+    }
+
+    function animateWeather() {
+      if (!ctx || !canvas) return;
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (currentWeather === 'summer') {
+        ctx.fillStyle = 'rgba(251, 191, 36, 0.35)';
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          ctx.fill();
+          p.y -= 0.3;
+          if (p.y < 0) p.y = canvas.height;
+        });
+      } else if (currentWeather === 'spring') {
+        ctx.fillStyle = 'rgba(244, 114, 182, 0.7)';
+        particles.forEach(p => {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.beginPath();
+          ctx.ellipse(0, 0, p.size * 1.8, p.size, 0, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.restore();
+          p.y += p.speedY * 0.9;
+          p.x += Math.sin(p.angle) * 1.2;
+          p.angle += p.spin;
+          if (p.y > canvas.height) p.y = -10;
+        });
+      } else if (currentWeather === 'autumn') {
+        ctx.fillStyle = 'rgba(217, 119, 6, 0.75)';
+        particles.forEach(p => {
+          ctx.save();
+          ctx.translate(p.x, p.y);
+          ctx.rotate(p.angle);
+          ctx.fillRect(-p.size, -p.size, p.size * 1.5, p.size * 1.5);
+          ctx.restore();
+          p.y += p.speedY * 1.2;
+          p.x += p.speedX;
+          p.angle += p.spin;
+          if (p.y > canvas.height) p.y = -10;
+        });
+      } else if (currentWeather === 'winter') {
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, p.size * 0.8, 0, Math.PI * 2);
+          ctx.fill();
+          p.y += p.speedY * 0.8;
+          p.x += Math.sin(p.y * 0.02);
+          if (p.y > canvas.height) p.y = -5;
+        });
+      } else if (currentWeather === 'rain') {
+        ctx.strokeStyle = 'rgba(96, 165, 250, 0.65)';
+        ctx.lineWidth = 1.5;
+        particles.forEach(p => {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.x - 2, p.y + 14);
+          ctx.stroke();
+          p.y += p.speedY * 5;
+          if (p.y > canvas.height) p.y = -15;
+        });
+      }
+
+      requestAnimationFrame(animateWeather);
+    }
+
+    /* --- 9. Built-in Web Audio API Synthesizer --- */
+    function initAudio() {
+      if (!audioContext) {
+        const AudioClass = window.AudioContext || window.webkitAudioContext;
+        audioContext = new AudioClass();
+      }
+      if (audioContext.state === 'suspended') {
+        audioContext.resume();
+      }
+    }
+
+    function playChime(freq, dur) {
+      if (!audioContext || !isAudioPlaying) return;
+      try {
+        const osc = audioContext.createOscillator();
+        const gain = audioContext.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(freq, audioContext.currentTime);
+        gain.gain.setValueAtTime(0.04, audioContext.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + dur);
+        osc.connect(gain);
+        gain.connect(audioContext.destination);
+        osc.start();
+        osc.stop(audioContext.currentTime + dur);
+      } catch (e) {}
+    }
+
+    btnAudioToggle.addEventListener('click', () => {
+      initAudio();
+      isAudioPlaying = !isAudioPlaying;
+      if (isAudioPlaying) {
+        btnAudioToggle.innerHTML = '<i class="fa-solid fa-volume-high text-emerald-400"></i>';
+      } else {
+        btnAudioToggle.innerHTML = '<i class="fa-solid fa-volume-xmark text-slate-400"></i>';
+      }
     });
-<!-- ... existing code ... -->
+
+  </script>
+</body>
+</html>
